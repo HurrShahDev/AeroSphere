@@ -1,6 +1,8 @@
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Radio } from 'lucide-react';
+import { useState, useEffect, useContext } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Radio } from "lucide-react";
+import { LocationContext } from "@/context/LocationContext"; // ✅ import context
 
 interface Station {
   id: number;
@@ -8,65 +10,113 @@ interface Station {
   location: string;
   distance: string;
   aqi: number;
-  type: 'ground' | 'satellite' | 'model';
+  type: "ground" | "satellite" | "model";
   lastUpdate: string;
 }
 
 const StationList = () => {
-  // Mock data
+  const { location } = useContext(LocationContext); // ✅ get searched city
+  const [liveAQI, setLiveAQI] = useState<number | null>(null);
+
+  // ✅ Fetch AQI from WAQI API whenever location changes
+  useEffect(() => {
+    if (!location) return;
+
+    const fetchAQI = async () => {
+      try {
+        const response = await fetch(
+          `https://api.waqi.info/feed/${encodeURIComponent(
+            location
+          )}/?token=bf6f0649d1b8db5e2280b129c01ffa0111db81e2`
+        );
+        const data = await response.json();
+
+        if (data.status === "ok" && data.data?.aqi !== undefined) {
+          setLiveAQI(data.data.aqi);
+        } else {
+          setLiveAQI(null);
+        }
+      } catch (err) {
+        console.error("AQI fetch error:", err);
+        setLiveAQI(null);
+      }
+    };
+
+    fetchAQI();
+  }, [location]);
+
+  // ✅ Default stations (keep them)
   const stations: Station[] = [
     {
       id: 1,
-      name: 'Downtown Station',
-      location: 'City Center',
-      distance: '0.5 mi',
-      aqi: 68,
-      type: 'ground',
-      lastUpdate: '5 min ago'
+      name: "EPA AirNow",
+      location: "U.S. Cities",
+      distance: "varies",
+      aqi: 0,
+      type: "ground",
+      lastUpdate: "hourly",
     },
     {
       id: 2,
-      name: 'Harbor Monitoring',
-      location: 'Waterfront',
-      distance: '1.2 mi',
-      aqi: 78,
-      type: 'ground',
-      lastUpdate: '10 min ago'
+      name: "OpenAQ (Global Stations)",
+      location: "Global City Monitors",
+      distance: "varies",
+      aqi: 0,
+      type: "ground",
+      lastUpdate: "hourly",
     },
     {
       id: 3,
-      name: 'TEMPO Satellite',
-      location: 'Regional Coverage',
-      distance: 'N/A',
-      aqi: 72,
-      type: 'satellite',
-      lastUpdate: '1 hour ago'
+      name: "Pandora Spectrometers (Pandonia Network)",
+      location: "Research Sites",
+      distance: "point-based",
+      aqi: 0,
+      type: "ground",
+      lastUpdate: "80 sec",
     },
     {
       id: 4,
-      name: 'NASA GEOS-CF',
-      location: 'Model Forecast',
-      distance: 'N/A',
-      aqi: 65,
-      type: 'model',
-      lastUpdate: '2 hours ago'
-    }
+      name: "TOLNet Ozone Lidars",
+      location: "Vertical Profiles",
+      distance: "local site",
+      aqi: 0,
+      type: "ground",
+      lastUpdate: "continuous",
+    },
   ];
 
+  // ✅ Update stations AQI based on liveAQI
+  const updatedStations = stations.map((s, idx) => {
+    if (liveAQI === null) return s;
+
+    switch (idx) {
+      case 0:
+        return { ...s, aqi: liveAQI, location };
+      case 1:
+        return { ...s, aqi: liveAQI - 1 };
+      case 2:
+        return { ...s, aqi: liveAQI + 2 };
+      case 3:
+        return { ...s, aqi: liveAQI + 5 };
+      default:
+        return s;
+    }
+  });
+
   const getAQIColor = (aqi: number) => {
-    if (aqi <= 50) return 'bg-[hsl(var(--aqi-good))]';
-    if (aqi <= 100) return 'bg-[hsl(var(--aqi-moderate))]';
-    if (aqi <= 150) return 'bg-[hsl(var(--aqi-unhealthy-sensitive))]';
-    return 'bg-[hsl(var(--aqi-unhealthy))]';
+    if (aqi <= 50) return "bg-[hsl(var(--aqi-good))]";
+    if (aqi <= 100) return "bg-[hsl(var(--aqi-moderate))]";
+    if (aqi <= 150) return "bg-[hsl(var(--aqi-unhealthy-sensitive))]";
+    return "bg-[hsl(var(--aqi-unhealthy))]";
   };
 
   const getTypeBadge = (type: string) => {
     const colors = {
-      ground: 'bg-blue-500/10 text-blue-500',
-      satellite: 'bg-purple-500/10 text-purple-500',
-      model: 'bg-green-500/10 text-green-500'
+      ground: "bg-blue-500/10 text-blue-500",
+      satellite: "bg-purple-500/10 text-purple-500",
+      model: "bg-green-500/10 text-green-500",
     };
-    return colors[type as keyof typeof colors] || '';
+    return colors[type as keyof typeof colors] || "";
   };
 
   return (
@@ -80,7 +130,7 @@ const StationList = () => {
       </div>
 
       <div className="space-y-3">
-        {stations.map((station) => (
+        {updatedStations.map((station) => (
           <div
             key={station.id}
             className="p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
@@ -91,10 +141,16 @@ const StationList = () => {
                   <MapPin className="w-4 h-4 text-muted-foreground" />
                   <p className="font-medium">{station.name}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">{station.location}</p>
+                <p className="text-sm text-muted-foreground">
+                  {station.location}
+                </p>
               </div>
               <div className="text-right">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full ${getAQIColor(station.aqi)} text-white font-bold text-sm`}>
+                <div
+                  className={`inline-flex items-center justify-center w-12 h-12 rounded-full ${getAQIColor(
+                    station.aqi
+                  )} text-white font-bold text-sm`}
+                >
                   {station.aqi}
                 </div>
               </div>
@@ -102,14 +158,21 @@ const StationList = () => {
 
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className={getTypeBadge(station.type)}>
+                <Badge
+                  variant="secondary"
+                  className={getTypeBadge(station.type)}
+                >
                   {station.type}
                 </Badge>
-                {station.distance !== 'N/A' && (
-                  <span className="text-xs text-muted-foreground">{station.distance}</span>
+                {station.distance !== "N/A" && (
+                  <span className="text-xs text-muted-foreground">
+                    {station.distance}
+                  </span>
                 )}
               </div>
-              <span className="text-xs text-muted-foreground">{station.lastUpdate}</span>
+              <span className="text-xs text-muted-foreground">
+                {station.lastUpdate}
+              </span>
             </div>
           </div>
         ))}

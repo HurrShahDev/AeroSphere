@@ -1,4 +1,5 @@
-import { Wind, Bell } from 'lucide-react';
+import { useContext, useEffect, useState } from 'react';
+import { Wind, Bell, LogOut } from 'lucide-react'; // Added LogOut icon
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AQICard from '@/components/AQICard';
@@ -12,8 +13,35 @@ import PollutantBreakdown from '@/components/PollutantBreakdown';
 import StationList from '@/components/StationList';
 import AlertSettings from '@/components/AlertSettings';
 import heroImage from '@/assets/hero-bg.jpg';
+import { LocationContext } from '@/context/LocationContext';
+import { useNavigate } from 'react-router-dom'; // New
+import { useToast } from '@/hooks/use-toast'; // New
 
 const Index = () => {
+  const { location } = useContext(LocationContext);
+  const [aqi, setAqi] = useState<number>(68); // default AQI = 68
+  const [activeTab, setActiveTab] = useState<string>('overview'); // New state for active tab
+  const navigate = useNavigate(); // New
+  const { toast } = useToast(); // New
+
+
+  useEffect(() => {
+    if (!location) return;
+
+    const fetchAqi = async () => {
+      try {
+        const response = await fetch(`/api/aqi?city=${encodeURIComponent(location)}`);
+        const data = await response.json();
+        if (data?.aqi !== undefined) setAqi(data.aqi);
+      } catch (error) {
+        console.error('Error fetching AQI:', error);
+        // keep default AQI (68) if fetch fails
+      }
+    };
+
+    fetchAqi();
+  }, [location]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
@@ -23,16 +51,39 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <Wind className="w-8 h-8 text-primary" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                AirWatch
+                AeroSphere
               </h1>
             </div>
             <nav className="hidden md:flex items-center gap-6">
-              <a href="#overview" className="text-sm font-medium hover:text-primary transition-colors">Overview</a>
-              <a href="#map" className="text-sm font-medium hover:text-primary transition-colors">Map</a>
-              <a href="#forecast" className="text-sm font-medium hover:text-primary transition-colors">Forecast</a>
-              <Button variant="outline" size="sm">
+              <a 
+                onClick={() => setActiveTab('overview')} 
+                className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
+              >
+                Overview
+              </a>
+              <a 
+                onClick={() => setActiveTab('map')} 
+                className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
+              >
+                Map
+              </a>
+              <a 
+                onClick={() => setActiveTab('forecast')} 
+                className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
+              >
+                Forecast
+              </a>
+              <Button variant="outline" size="sm" onClick={() => setActiveTab('alerts')}>
                 <Bell className="w-4 h-4 mr-2" />
                 Alerts
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                const link = document.createElement('a');
+                link.href = 'https://drive.google.com/uc?export=download&id=1Ic6qAI-ItiSu4iFyDU75tTtpTwB_HaR0';
+                link.download = 'AirWatch_Report.pdf';
+                link.click();
+              }}>
+                Download Report
               </Button>
             </nav>
           </div>
@@ -69,14 +120,12 @@ const Index = () => {
         </div>
 
         {/* Current AQI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <AQICard aqi={68} location="Current Location" pollutant="PM2.5" className="animate-fade-in" />
-          <AQICard aqi={45} location="Nearby Station" pollutant="O₃" className="animate-fade-in" />
-          <AQICard aqi={82} location="Regional Average" pollutant="NO₂" className="animate-fade-in" />
+        <div>
+          <AQICard aqi={aqi} location={location || "Current Location"} pollutant="PM2.5" className="animate-fade-in" />
         </div>
 
         {/* Main Dashboard Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="map">Map</TabsTrigger>
@@ -93,44 +142,134 @@ const Index = () => {
                 <PollutantBreakdown />
               </div>
               <div className="space-y-6">
-                <HealthRecommendations aqi={68} />
+                <HealthRecommendations aqi={aqi} />
               </div>
             </div>
           </TabsContent>
 
           {/* Map Tab */}
-          <TabsContent value="map" className="space-y-6" id="map">
-            <AirQualityMap />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="p-6 rounded-lg border bg-card">
-                <h3 className="text-lg font-semibold mb-4">Data Sources</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="font-medium">NASA TEMPO Satellite</p>
-                      <p className="text-xs text-muted-foreground">Hourly NO₂, O₃, HCHO</p>
-                    </div>
-                    <span className="text-xs text-green-500">Active</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="font-medium">Ground Stations</p>
-                      <p className="text-xs text-muted-foreground">EPA AirNow, OpenAQ</p>
-                    </div>
-                    <span className="text-xs text-green-500">Active</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="font-medium">NASA GEOS-CF Model</p>
-                      <p className="text-xs text-muted-foreground">5-Day Forecast</p>
-                    </div>
-                    <span className="text-xs text-green-500">Active</span>
-                  </div>
-                </div>
-              </div>
-              <PollutantBreakdown />
-            </div>
-          </TabsContent>
+<TabsContent value="map" className="space-y-6" id="map">
+  <AirQualityMap />
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="p-6 rounded-lg border bg-card">
+      <h3 className="text-lg font-semibold mb-4">Data Sources</h3>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">NASA TEMPO Satellite</p>
+            <p className="text-xs text-muted-foreground">
+              Hourly NO₂, O₃, HCHO, Aerosol Index
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">NASA GEOS-CF / MERRA-2 Model</p>
+            <p className="text-xs text-muted-foreground">
+              Reanalysis + Forecast (Temp, Humidity, Wind, PBL Height)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">NASA GPM IMERG</p>
+            <p className="text-xs text-muted-foreground">
+              Global Precipitation (30-min, 0.1° resolution)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">Daymet v4 (North America)</p>
+            <p className="text-xs text-muted-foreground">
+              Daily 1 km Surface Weather (Temp, Precip, Humidity, Snow)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">CYGNSS Satellite (Tropics)</p>
+            <p className="text-xs text-muted-foreground">
+              Daily Tropical Surface Winds (~25 km)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">JAXA AMSR2 (Microwave Radiometer)</p>
+            <p className="text-xs text-muted-foreground">
+              Global Soil Moisture (~12 km, Daily)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">GOES-East/West (NOAA)</p>
+            <p className="text-xs text-muted-foreground">
+              Cloud Cover, IR/Visible Imagery (5–10 min)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">Himawari-8 </p>
+            <p className="text-xs text-muted-foreground">
+              Cloud Cover, IR/Visible Imagery (5–10 min)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">MODIS (Terra/Aqua Satellites)</p>
+            <p className="text-xs text-muted-foreground">
+              Aerosol Optical Depth (AOD), Daily (1–10 km)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">VIIRS (Suomi-NPP / NOAA-20)</p>
+            <p className="text-xs text-muted-foreground">
+              Aerosol Products, Active Fire & Smoke Detection
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="font-medium">WHO / EPA / Local AQ Guidelines</p>
+            <p className="text-xs text-muted-foreground">
+              Public Health Standards & Thresholds (PM₂.₅, O₃, NO₂, AQI)
+            </p>
+          </div>
+          <span className="text-xs text-green-500">Active</span>
+        </div>
+      </div>
+    </div>
+
+    <PollutantBreakdown />
+  </div>
+</TabsContent>
+
 
           {/* Forecast Tab */}
           <TabsContent value="forecast" className="space-y-6" id="forecast">
@@ -149,7 +288,7 @@ const Index = () => {
                   { time: '+48h', pm25: 65, pm10: 72, o3: 48, no2: 45 },
                 ]}
               />
-              <HealthRecommendations aqi={68} />
+              <HealthRecommendations aqi={aqi} />
             </div>
           </TabsContent>
 
@@ -206,7 +345,7 @@ const Index = () => {
                     </div>
                   </div>
                 </div>
-                <HealthRecommendations aqi={68} />
+                <HealthRecommendations aqi={aqi} />
               </div>
             </div>
           </TabsContent>
@@ -220,8 +359,8 @@ const Index = () => {
       <footer className="border-t mt-12 bg-card/50">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center text-sm text-muted-foreground">
-            <p>AirWatch - Real-time air quality monitoring powered by NASA TEMPO, OpenAQ, and EPA AirNow</p>
-            <p className="mt-2">© 2025 AirWatch. Built for healthier communities.</p>
+            <p>AeroSphere - Real-time air quality monitoring powered by NASA TEMPO, OpenAQ, and EPA AirNow</p>
+            <p className="mt-2">© 2025 AeroSphere. Built for healthier communities.</p>
           </div>
         </div>
       </footer>

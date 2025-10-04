@@ -1,31 +1,54 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, Send, X } from 'lucide-react';
+import { LocationContext } from '@/context/LocationContext';
 
 const AirQualityChatbot = () => {
+  const { location } = useContext(LocationContext); // ✅ get searched location
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hi! I can help you with air quality questions. Try asking "Is it safe to jog tomorrow?"' }
   ]);
   const [input, setInput] = useState('');
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = { role: 'user', content: input };
     setMessages([...messages, userMessage]);
     setInput('');
 
-    // Mock AI response - will be replaced with real AI
-    setTimeout(() => {
+    try {
+      const response = await fetch('https://0e7b571622fd.ngrok-free.app/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: input,
+          location: location || 'Unknown', // ✅ include searched location
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      const data = await response.json();
+
       const aiResponse = {
         role: 'assistant',
-        content: 'Based on current forecasts, tomorrow\'s AQI is expected to be 68 (Moderate). Light outdoor activities should be fine for most people, but sensitive individuals may want to limit prolonged outdoor exertion.'
+        content: data.response || 'Sorry, I could not get a response from the server.'
+      };
+
+      setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error fetching AI response:', error);
+      const aiResponse = {
+        role: 'assistant',
+        content: 'Failed to get response from the server. Please try again later.'
       };
       setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+    }
   };
 
   if (!isOpen) {
