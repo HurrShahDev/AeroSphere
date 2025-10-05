@@ -33,7 +33,7 @@ const HealthRecommendations = () => {
         console.log('Fetching health recommendations for:', location);
         
         const response = await fetch(
-          `https://54c820470b8a.ngrok-free.app/api/health-recommendations/${encodeURIComponent(location)}`,
+          `https://1e7aa1902dc0.ngrok-free.app/api/health-recommendations/${encodeURIComponent(location)}`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',

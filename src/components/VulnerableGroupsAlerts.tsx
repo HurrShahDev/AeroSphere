@@ -35,7 +35,7 @@ const VulnerableGroupsAlerts = () => {
 
       try {
         const response = await fetch(
-          `https://54c820470b8a.ngrok-free.app/api/health-alerts/${encodeURIComponent(location)}/vulnerable-groups`,
+          `https://1e7aa1902dc0.ngrok-free.app/api/health-alerts/${encodeURIComponent(location)}/vulnerable-groups`,
           {
             headers: {
               'Accept': 'application/json',

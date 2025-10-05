@@ -38,7 +38,7 @@ const WildfireImpact = () => {
 
       try {
         const response = await fetch(
-          `https://54c820470b8a.ngrok-free.app/api/wildfire/impact/${encodeURIComponent(location)}?radius_km=${radius}`,
+          `https://1e7aa1902dc0.ngrok-free.app/api/wildfire/impact/${encodeURIComponent(location)}?radius_km=${radius}`,
           {
             headers: {
               'Accept': 'application/json',

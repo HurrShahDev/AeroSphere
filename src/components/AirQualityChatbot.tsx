@@ -21,7 +21,7 @@ const AirQualityChatbot = () => {
     setInput('');
 
     try {
-      const response = await fetch('https://54c820470b8a.ngrok-free.app/api/chat', {
+      const response = await fetch('https://1e7aa1902dc0.ngrok-free.app/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
