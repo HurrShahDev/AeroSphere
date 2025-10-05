@@ -28,11 +28,19 @@ const ForecastCards = () => {
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const getDayName = (daysFromNow: number): string => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date();
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysFromNow);
+    return days[targetDate.getDay()];
+  };
+
   const mockForecasts: Forecast[] = [
     { date: '', day_name: 'Today', aqi: 68, category: 'Moderate', temperature: 72, weather_icon: 'sun' },
     { date: '', day_name: 'Tomorrow', aqi: 85, category: 'Moderate', temperature: 68, weather_icon: 'cloud' },
-    { date: '', day_name: 'Wednesday', aqi: 45, category: 'Good', temperature: 70, weather_icon: 'wind' },
-    { date: '', day_name: 'Thursday', aqi: 52, category: 'Moderate', temperature: 65, weather_icon: 'rain' },
+    { date: '', day_name: getDayName(2), aqi: 45, category: 'Good', temperature: 70, weather_icon: 'wind' },
+    { date: '', day_name: getDayName(3), aqi: 52, category: 'Moderate', temperature: 65, weather_icon: 'rain' },
   ];
 
   useEffect(() => {
@@ -47,7 +55,7 @@ const ForecastCards = () => {
         console.log('Fetching forecast for:', location);
         
         const response = await fetch(
-          `https://0e7b571622fd.ngrok-free.app/api/forecast/${encodeURIComponent(location)}?days=4`,
+          `https://f259b24615c9.ngrok-free.app/api/forecast/${encodeURIComponent(location)}?days=4`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',
@@ -114,11 +122,6 @@ const ForecastCards = () => {
         <p className="text-sm text-muted-foreground">Loading forecast...</p>
       )}
       
-      {!isLoading && forecasts.length === 0 && (
-        <p className="text-sm text-yellow-600">
-          ⚠️ Models need training - Using sample data (run /api/train endpoint first)
-        </p>
-      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {displayForecasts.map((forecast, index) => {

@@ -43,7 +43,7 @@ const AQIChart = ({ title = 'Air Quality Trends', data }: AQIChartProps) => {
         
         // Use the correct forecast endpoint
         const response = await fetch(
-          `https://0e7b571622fd.ngrok-free.app/api/forecast/${encodeURIComponent(location)}?days=4`,
+          `https://f259b24615c9.ngrok-free.app/api/forecast/${encodeURIComponent(location)}?days=4`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',
