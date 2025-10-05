@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 210 100% 97%;
+    --foreground: 210 20% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 20% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 20% 15%;
+
+    --primary: 197 92% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 72% 56%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 30% 93%;
+    --muted-foreground: 210 12% 45%;
+
+    --accent: 197 92% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 25% 88%;
+    --input: 210 25% 88%;
+    --ring: 197 92% 52%;
+
+    --radius: 0.75rem;
+
+    /* AQI Color Scale */
+    --aqi-good: 142 71% 45%;
+    --aqi-moderate: 48 96% 53%;
+    --aqi-unhealthy-sensitive: 25 95% 53%;
+    --aqi-unhealthy: 0 84% 60%;
+    --aqi-very-unhealthy: 316 73% 52%;
+    --aqi-hazardous: 316 50% 35%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(197 92% 52%) 0%, hsl(174 72% 56%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(210 100% 97%) 0%, hsl(197 92% 95%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100% / 0.9) 0%, hsl(197 92% 98% / 0.8) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px hsl(197 92% 52% / 0.08);
+    --shadow-md: 0 4px 16px hsl(197 92% 52% / 0.12);
+    --shadow-lg: 0 8px 32px hsl(197 92% 52% / 0.16);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 210 30% 8%;
+    --foreground: 210 20% 92%;
+
+    --card: 210 25% 12%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 210 25% 12%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 197 92% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 72% 56%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 25% 18%;
+    --muted-foreground: 210 12% 60%;
+
+    --accent: 197 92% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 25% 20%;
+    --input: 210 25% 20%;
+    --ring: 197 92% 52%;
+
+    --gradient-card: linear-gradient(135deg, hsl(210 25% 12% / 0.9) 0%, hsl(197 92% 15% / 0.8) 100%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
