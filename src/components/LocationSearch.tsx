@@ -69,7 +69,6 @@ const LocationSearch = () => {
     setQuery(s.name);
     setSuggestions([]);
     setActiveIndex(-1);
-    setShowSuggestions(false);
 
     // ✅ Only pass city name to WAQI (first part before comma)
     const city = s.name.split(',')[0];
@@ -77,6 +76,7 @@ const LocationSearch = () => {
 
     // Keep caret at end
     setTimeout(() => {
+      setShowSuggestions(false);
       if (inputRef.current) {
         inputRef.current.focus();
         inputRef.current.setSelectionRange(s.name.length, s.name.length);
@@ -184,7 +184,10 @@ const LocationSearch = () => {
                       ? 'bg-muted font-medium'
                       : 'hover:bg-muted'
                   }`}
-                  onClick={() => selectSuggestion(s)}
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevent input blur
+                    selectSuggestion(s);
+                  }}
                 >
                   {s.name}
                 </button>
