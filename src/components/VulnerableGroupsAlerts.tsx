@@ -1,9 +1,8 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Heart, Users, Baby, Briefcase, AlertTriangle, Loader2, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LocationContext } from '@/context/LocationContext';
 
 interface GroupAlert {
   group: string;
@@ -22,8 +21,7 @@ interface VulnerableGroupsData {
 
 const WAQI_TOKEN = 'bf6f0649d1b8db5e2280b129c01ffa0111db81e2';
 
-const VulnerableGroupsAlerts = () => {
-  const { location } = useContext(LocationContext);
+const VulnerableGroupsAlerts = ({ location }: { location: string }) => {
   const [alertsData, setAlertsData] = useState<VulnerableGroupsData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -184,9 +182,9 @@ const VulnerableGroupsAlerts = () => {
           }
         }
 
-        // Fetch alerts from backend
+        // Fetch health recommendations from backend (which includes vulnerable groups info)
         const response = await fetch(
-          `https://1e7aa1902dc0.ngrok-free.app/api/health-alerts/${encodeURIComponent(location)}/vulnerable-groups`,
+          `https://uncomputed-shawn-unhayed.ngrok-free.dev/api/health-recommendations/${encodeURIComponent(location)}`,
           {
             headers: {
               'Accept': 'application/json',
@@ -218,20 +216,32 @@ const VulnerableGroupsAlerts = () => {
 
         const data = await response.json();
         
+        // Extract vulnerable groups alerts from health recommendations
+        // The API returns recommendations with sensitive groups info
+        const extractedAlerts: GroupAlert[] = [];
+        
+        if (data.recommendations?.sensitive && data.recommendations.sensitive.length > 0) {
+          extractedAlerts.push({
+            group: 'Sensitive Groups',
+            risk_level: data.aqi > 150 ? 'High' : 'Moderate',
+            recommendation: data.recommendations.sensitive.join(' '),
+            activities_to_avoid: data.recommendations.activities || [],
+            precautions: data.recommendations.precautions || []
+          });
+        }
+        
         // If we have current AQI from WAQI, check if we should regenerate alerts
         if (currentAqi !== null) {
           // If AQI difference is significant (>5), regenerate alerts
-          if (Math.abs(data.current_aqi - currentAqi) > 5) {
-            console.log(`AQI changed from ${data.current_aqi} to ${currentAqi}, regenerating alerts`);
+          if (Math.abs(data.aqi - currentAqi) > 5) {
+            console.log(`AQI changed from ${data.aqi} to ${currentAqi}, regenerating alerts`);
             setAlertsData(generateAlertsForAQI(currentAqi, cityName));
           } else {
-            // Just update the AQI value but keep backend alerts
-            data.current_aqi = currentAqi;
-            data.city = cityName;
-            setAlertsData(data);
+            // Use generated alerts based on current AQI
+            setAlertsData(generateAlertsForAQI(currentAqi, cityName));
           }
         } else {
-          setAlertsData(data);
+          setAlertsData(generateAlertsForAQI(data.aqi, data.city));
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch vulnerable groups alerts';

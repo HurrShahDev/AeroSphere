@@ -41,7 +41,7 @@ const HistoricalTrends = () => {
 
       try {
         const response = await fetch(
-          `https://1e7aa1902dc0.ngrok-free.app/api/trends/${encodeURIComponent(location)}/historical?days=${days}&pollutant=${encodeURIComponent(pollutant)}`,
+          `https://uncomputed-shawn-unhayed.ngrok-free.dev/api/pollutants/${encodeURIComponent(location)}/history/${encodeURIComponent(pollutant)}?days=${days}`,
           {
             headers: {
               'Accept': 'application/json',

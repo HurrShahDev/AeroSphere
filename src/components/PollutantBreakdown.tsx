@@ -1,7 +1,6 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { LocationContext } from '@/context/LocationContext';
 
 interface PollutantData {
   name: string;
@@ -21,8 +20,7 @@ interface PollutantResponse {
   pollutants: PollutantData[];
 }
 
-const PollutantBreakdown = () => {
-  const { location } = useContext(LocationContext);
+const PollutantBreakdown = ({ location }: { location: string }) => {
   const [pollutants, setPollutants] = useState<PollutantData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [cityName, setCityName] = useState('');
@@ -108,7 +106,7 @@ const PollutantBreakdown = () => {
         console.log('Fetching pollutant breakdown for:', location);
         
         const response = await fetch(
-          `https://1e7aa1902dc0.ngrok-free.app/api/pollutants/${encodeURIComponent(location)}`,
+          `https://uncomputed-shawn-unhayed.ngrok-free.dev/api/pollutants/${encodeURIComponent(location)}`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',

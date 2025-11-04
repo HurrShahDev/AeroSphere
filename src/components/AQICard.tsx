@@ -59,7 +59,7 @@ const AQICard = ({ aqi: propAqi, location, pollutant: propPollutant, className }
         
         // Fetch pollutant details from your backend
         const pollutantResponse = await fetch(
-          `https://1e7aa1902dc0.ngrok-free.app/api/pollutants/${encodeURIComponent(location)}`,
+          `https://uncomputed-shawn-unhayed.ngrok-free.dev/api/pollutants/${encodeURIComponent(location)}`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',

@@ -121,7 +121,7 @@ const ForecastCards = () => {
           ),
           // Forecast data from your backend
           fetch(
-            `https://1e7aa1902dc0.ngrok-free.app/api/forecast/${encodeURIComponent(location)}?days=4`,
+            `https://uncomputed-shawn-unhayed.ngrok-free.dev/api/forecast/${encodeURIComponent(location)}?days=4`,
             {
               headers: {
                 'ngrok-skip-browser-warning': 'true',

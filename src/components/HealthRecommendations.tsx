@@ -55,7 +55,7 @@ const HealthRecommendations = () => {
 
         // Fetch health recommendations from backend
         const response = await fetch(
-          `https://1e7aa1902dc0.ngrok-free.app/api/health-recommendations/${encodeURIComponent(location)}`,
+          `https://uncomputed-shawn-unhayed.ngrok-free.dev/api/health-recommendations/${encodeURIComponent(location)}`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',
